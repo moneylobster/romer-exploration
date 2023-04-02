@@ -8,11 +8,6 @@ import yaml
 import ast
 
 # Load ceiling params
-with open('../../misc/gridparams.yaml') as f:
-    loadedparams = yaml.safe_load(f)
-
-GRID_SIZE = loadedparams.get('grid_size')
-
 with open('../../misc/tagsettings.txt', 'r') as f:
     tag_set = f.read()
     tag_dict, tag_size = ast.literal_eval(tag_set)
