@@ -5,7 +5,7 @@ import numpy as np
 from os import path, makedirs
 
 #DEFINES
-TAG_TYPE="DICT_5X5_100"
+TAG_TYPE="DICT_4X4_100"
 TAG_SIZE=18 #tag edge length in centimeters
 ROOM_COORDS=[5.44, 3.66, -16.24, -3.66]
 WORLDFILE="../worlds/romer_lab.wbt"
