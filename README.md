@@ -1,5 +1,5 @@
-## ROMER lab map for Webots
+## ROMER Exploration Task
 
-This repository contains a map of the ROMER mechatronics lab for Webots.
+A robot tries to find a marker hidden somewhere in the map via exploration.
 
 ![A picture of the webots map](./worlds/romer_lab.png)
