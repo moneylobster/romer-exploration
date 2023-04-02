@@ -18,7 +18,7 @@ timestep = int(robot.getBasicTimeStep())
 # get motors
 lm = robot.getDevice("left wheel")
 rm = robot.getDevice("right wheel")
-camera = robot.getDevice("Camera")
+camera = robot.getDevice("camera")
 
 move = Movement(lm, rm)
 
