@@ -8,7 +8,7 @@ import yaml
 import ast
 
 # Load ceiling params
-with open('params.yaml') as f:
+with open('../../misc/gridparams.yaml') as f:
     loadedparams = yaml.safe_load(f)
 
 GRID_SIZE = loadedparams.get('grid_size')
@@ -18,7 +18,7 @@ with open('../../misc/tagsettings.txt', 'r') as f:
     tag_dict, tag_size = ast.literal_eval(tag_set)
 
 # Load camera parameters
-with open('../calib_supervisor/calibration.yaml') as f:
+with open('../../misc/calibration.yaml') as f:
     loadeddict = yaml.safe_load(f)
 
 matrix_coefficient = np.array(loadeddict.get('camera_matrix'))
