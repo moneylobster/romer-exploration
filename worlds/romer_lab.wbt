@@ -20,8 +20,8 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/project
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.4471037543725037 -0.26586973887059934 0.854055920170858 4.081435992698141
-  position 4.487655049236817 5.855703240754985 10.904345755224893
+  orientation -0.3061403180576515 -0.1925637104674475 0.9323075260184104 4.202359317003281
+  position 5.069866691491026 18.523522509547245 16.43957631731332
 }
 TexturedBackground {
 }
@@ -487,10 +487,10 @@ DEF WORKSHOP Group {
 }
 Pioneer3dx {
   translation -0.46 0 0.0975
-  children [
+  extensionSlot [
     Camera {
-      translation 0 0 0.25
-      rotation 0 1 0 -1.5707996938995747
+      translation 0 0 0.1525
+      rotation 0 -1 0 1.5707996938995747
       fieldOfView 1.2
       width 1080
       height 1080
@@ -548,7 +548,7 @@ DEF CEILING_TAGS Group {
       }
     }
     Ceiling {
-      translation 2.7300000000000004 0.0 3.299
+      translation 2.7300000000000004 0 3.299
       name "tag3"
       size 0.18 0.18
       appearance PBRAppearance {
@@ -660,7 +660,7 @@ DEF CEILING_TAGS Group {
       }
     }
     Ceiling {
-      translation 0.020000000000000462 0.0 3.299
+      translation 0.020000000000000462 0 3.299
       name "tag10"
       size 0.18 0.18
       appearance PBRAppearance {
@@ -772,7 +772,7 @@ DEF CEILING_TAGS Group {
       }
     }
     Ceiling {
-      translation -2.6899999999999986 0.0 3.299
+      translation -2.6899999999999986 0 3.299
       name "tag17"
       size 0.18 0.18
       appearance PBRAppearance {
@@ -884,7 +884,7 @@ DEF CEILING_TAGS Group {
       }
     }
     Ceiling {
-      translation -5.3999999999999995 0.0 3.299
+      translation -5.3999999999999995 0 3.299
       name "tag24"
       size 0.18 0.18
       appearance PBRAppearance {
@@ -996,7 +996,7 @@ DEF CEILING_TAGS Group {
       }
     }
     Ceiling {
-      translation -8.11 0.0 3.299
+      translation -8.11 0 3.299
       name "tag31"
       size 0.18 0.18
       appearance PBRAppearance {
@@ -1108,7 +1108,7 @@ DEF CEILING_TAGS Group {
       }
     }
     Ceiling {
-      translation -10.819999999999997 0.0 3.299
+      translation -10.819999999999997 0 3.299
       name "tag38"
       size 0.18 0.18
       appearance PBRAppearance {
@@ -1220,7 +1220,7 @@ DEF CEILING_TAGS Group {
       }
     }
     Ceiling {
-      translation -13.529999999999998 0.0 3.299
+      translation -13.529999999999998 0 3.299
       name "tag45"
       size 0.18 0.18
       appearance PBRAppearance {
