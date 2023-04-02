@@ -18,8 +18,11 @@ timestep = int(robot.getBasicTimeStep())
 # get motors
 lm = robot.getDevice("left wheel")
 rm = robot.getDevice("right wheel")
+camera = robot.getDevice("Camera")
 
 move = Movement(lm, rm)
+
+move.linmoveto(1, 1, 0)
 
 # Main loop:
 # - perform simulation steps until Webots is stopping the controller
@@ -31,7 +34,9 @@ while robot.step(timestep) != -1:
     img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGB)
 
     state = posest(img)
+    print(f"Pose estimate: {state}")
+
+    move.update(state)
     
-    pass
 
 # Exit & cleanup code.
