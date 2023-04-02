@@ -62,10 +62,8 @@ def posest(img):
     img: RGB image as numpy array.
     '''
     
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     arucoParams = cv2.aruco.DetectorParameters_create()
     (corners, ids, rejected) = cv2.aruco.detectMarkers(img, arucoDict, parameters=arucoParams)
-    tag_errors = []
     if np.all(ids is not None):
         if len(ids) > 2:
             b = np.array([[0]])
