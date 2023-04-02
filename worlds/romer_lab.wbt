@@ -15,12 +15,13 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/cabinet/protos/Cabinet.proto"
 EXTERNPROTO "../protos/OfficeTable.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/apartment_structure/protos/Ceiling.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/robots/adept/pioneer3/protos/Pioneer3dx.proto"
 
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.26344132259815034 -0.5773552359553439 0.7728257248970732 5.216508547524903
-  position -25.61786784992414 20.469200673129887 23.287015981750965
+  orientation -0.4471037543725037 -0.26586973887059934 0.854055920170858 4.081435992698141
+  position 4.487655049236817 5.855703240754985 10.904345755224893
 }
 TexturedBackground {
 }
@@ -483,4 +484,7 @@ DEF WORKSHOP Group {
       }
     }
   ]
+}
+Pioneer3dx {
+  translation -0.46 0 0.0975
 }
