@@ -81,10 +81,12 @@ def posest(img):
             sintheta=np.sign(res[0][3])*np.sqrt(res[0][3][0]**2/(res[0][2][0]**2+res[0][3][0]**2))
             # rotate x and y by theta for some reason?????
             position_est = np.array([[res[0][0][0]*costheta[0]-res[0][1][0]*sintheta[0], res[0][0][0]*sintheta[0]+res[0][1][0]*costheta[0], np.arctan2(sintheta[0], costheta[0])]])
-        else:        
+        else:
+            # TODO improve this one, currently it misses angle estimate.
+            # either get it from rvec or get it from corners urself.
             for i,id in enumerate(ids):
                 rvec, tvec, markerPoints = cv2.aruco.estimatePoseSingleMarkers(corners[i], tag_size*0.01, matrix_coefficient, distortion_coefficient)
                 tvec[0][0][1] = -tvec[0][0][1]
                 position_est = tag_coords[id] + tvec[0][0][1::-1]
                 
-    return position_est
+    return position_est[0]
