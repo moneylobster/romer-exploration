@@ -20,9 +20,9 @@ class Movement():
         self.VEL=2
 
         # desired position accuracy
-        self.EPSILON=0.1
+        self.EPSILON=0.5
         # desired angle accuracy
-        self.ANGEPSILON=0.005
+        self.ANGEPSILON=0.05
         
         self.state=[]
         self.target=[0,0,0]
@@ -121,7 +121,7 @@ class Movement():
         '''
         current=self.state[2]
         delta=theta-current
-        print(f"DELTA: {delta} CURRENT: {current} TARGET: {theta}")
+        print(f"ROTATING// CURRENT: {current} TARGET: {theta}")
         if abs(delta)<self.ANGEPSILON:
             self.movestate=self.movestates.stop
         else:
