@@ -18,7 +18,9 @@ timestep = int(robot.getBasicTimeStep())
 # get motors
 lm = robot.getDevice("left wheel")
 rm = robot.getDevice("right wheel")
+# get camera
 camera = robot.getDevice("camera")
+camera.enable(timestep)
 
 move = Movement(lm, rm)
 
@@ -34,9 +36,11 @@ while robot.step(timestep) != -1:
     img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGB)
 
     state = posest(img)
-    print(f"Pose estimate: {state}")
-
     move.update(state)
+    
+    print(f"Pose estimate: {state}, State: {move.algostate} {move.movestate}")
+
+    
     
 
 # Exit & cleanup code.
