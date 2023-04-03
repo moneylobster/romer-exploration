@@ -487,13 +487,14 @@ DEF WORKSHOP Group {
 }
 Pioneer3dx {
   translation -0.46 0 0.0975
+  controller "exploration_ctrl"
   extensionSlot [
     Camera {
       translation 0 0 0.1525
       rotation 0 -1 0 1.5707996938995747
       fieldOfView 1.2
-      width 1080
-      height 1080
+      width 720
+      height 720
     }
   ]
 }
