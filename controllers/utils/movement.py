@@ -21,6 +21,8 @@ class Movement():
 
         # desired position accuracy
         self.EPSILON=0.1
+        # desired angle accuracy
+        self.ANGEPSILON=0.005
         
         self.state=[]
         self.target=[0,0,0]
@@ -78,11 +80,11 @@ class Movement():
             self.lm.setVelocity(-self.VEL)
             self.rm.setVelocity(-self.VEL)
         elif self.movestate==self.movestates.left:
-            self.lm.setVelocity(self.VEL)
-            self.rm.setVelocity(-self.VEL)
-        elif self.movestate==self.movestates.right:
             self.lm.setVelocity(-self.VEL)
             self.rm.setVelocity(self.VEL)
+        elif self.movestate==self.movestates.right:
+            self.lm.setVelocity(self.VEL)
+            self.rm.setVelocity(-self.VEL)
         else:
             # stop
             self.lm.setVelocity(0)
@@ -95,7 +97,7 @@ class Movement():
         
         if all(abs(self.state[:2]-self.target[:2])<self.EPSILON):
             # if x, y does match (on target), orient robot toward goal orientation.
-            if abs(self.state[2]-self.target[2])<self.EPSILON:
+            if abs(self.state[2]-self.target[2])<self.ANGEPSILON:
                 self.movestate=self.movestates.stop
                 self.algostate=self.algostates.stop
             else:
@@ -104,7 +106,7 @@ class Movement():
             # if x, y doesn't match (not on target), orient robot toward goal.
             # calculate target angle
             targetang=np.arctan2(self.target[1]-self.state[1], self.target[0]-self.state[0])
-            if abs(self.state[2]-targetang)<self.EPSILON:
+            if abs(self.state[2]-targetang)<self.ANGEPSILON:
                 # if on target angle, go forward
                 self.movestate=self.movestates.forward
             else:
@@ -119,7 +121,8 @@ class Movement():
         '''
         current=self.state[2]
         delta=theta-current
-        if abs(delta)<self.EPSILON:
+        print(f"DELTA: {delta} CURRENT: {current} TARGET: {theta}")
+        if abs(delta)<self.ANGEPSILON:
             self.movestate=self.movestates.stop
         else:
             # weird calculation to determine whether left or right is shorter
