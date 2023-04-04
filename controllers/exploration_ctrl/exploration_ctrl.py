@@ -24,7 +24,7 @@ camera.enable(timestep)
 
 move = Movement(lm, rm)
 
-move.linmoveto(1, 1, 0)
+move.linmoveto(2, 1, -1)
 
 # Main loop:
 # - perform simulation steps until Webots is stopping the controller
