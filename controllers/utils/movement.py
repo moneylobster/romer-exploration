@@ -120,7 +120,7 @@ class Movement():
         theta: desired angle in radians.
         '''
         current=self.state[2]
-        delta=theta-current
+        delta=(theta-current)%2*np.pi
         print(f"ROTATING// CURRENT: {current} TARGET: {theta}")
         if abs(delta)<self.ANGEPSILON:
             self.movestate=self.movestates.stop
