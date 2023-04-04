@@ -30,16 +30,14 @@ move.linmoveto(2, 1, -1)
 # - perform simulation steps until Webots is stopping the controller
 while robot.step(timestep) != -1:
 
-    # TODO change this to getimage for better performance
-    img = camera.getImageArray()
-    img = np.asarray(img, dtype=np.uint8)
+    img = camera.getImage()
+    img = np.frombuffer(img, np.uint8).reshape(camera.height, camera.width, 4)
     img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGB)
 
     state = posest(img)
     move.update(state)
     
     print(f"Pose estimate: {state}, State: {move.algostate} {move.movestate}")
-
     
     
 
