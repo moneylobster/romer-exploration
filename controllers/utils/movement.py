@@ -20,7 +20,7 @@ class Movement():
         self.VEL=2
 
         # desired position accuracy
-        self.EPSILON=0.5
+        self.EPSILON=0.1
         # desired angle accuracy
         self.ANGEPSILON=0.05
         
@@ -120,13 +120,13 @@ class Movement():
         theta: desired angle in radians.
         '''
         current=self.state[2]
-        delta=(theta-current)%2*np.pi
+        delta=(theta-current)
         print(f"ROTATING// CURRENT: {current} TARGET: {theta}")
-        if abs(delta)<self.ANGEPSILON:
+        if abs(delta) % 2*np.pi<self.ANGEPSILON:
             self.movestate=self.movestates.stop
         else:
             # weird calculation to determine whether left or right is shorter
-            if (1-(2*(delta//np.pi)))*np.sign(delta)+1:
+            if (1-(2*(abs(delta)//np.pi)))*np.sign(delta)+1:
                 self.movestate=self.movestates.left
             else:
                 self.movestate=self.movestates.right
