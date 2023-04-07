@@ -24,7 +24,10 @@ camera.enable(timestep)
 
 move = Movement(lm, rm)
 
-move.linmoveto(2, 1, -1)
+points=[[2,1,-1],
+        [0,0,1],
+        [1,1,0]]
+i=0
 
 # Main loop:
 # - perform simulation steps until Webots is stopping the controller
@@ -36,6 +39,12 @@ while robot.step(timestep) != -1:
 
     state = posest(img)
     move.update(state)
+
+    if move.movestate==move.movestates.stop:
+        move.linmoveto(*points[i])
+        i+=1
+        if i==len(points):
+            break
     
     print(f"Pose estimate: {state}, State: {move.algostate} {move.movestate}")
     

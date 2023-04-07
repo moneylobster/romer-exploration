@@ -121,7 +121,7 @@ class Movement():
         '''
         current=self.state[2]
         delta=(theta-current)
-        print(f"ROTATING// CURRENT: {current} TARGET: {theta}")
+        #print(f"ROTATING// CURRENT: {current} TARGET: {theta}")
         if abs(delta) % 2*np.pi<self.ANGEPSILON:
             self.movestate=self.movestates.stop
         else:
