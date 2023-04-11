@@ -22,7 +22,7 @@ class Movement():
         # desired position accuracy
         self.EPSILON=0.1
         # desired angle accuracy
-        self.ANGEPSILON=0.05
+        self.ANGEPSILON=0.1
         
         self.state=[]
         self.target=[0,0,0]
@@ -30,7 +30,7 @@ class Movement():
         # high level state - what is our goal right now?
         # stop: stopping
         # linear: moving to target in a straight line
-        self.algostates=Enum("Algorithm",["stop","linear"])
+        self.algostates=Enum("Algorithm",["stop","linear","turnaround"])
         self.algostate=self.algostates.stop
 
         # low level state - what are we doing right now?
@@ -38,6 +38,9 @@ class Movement():
         # the rest: moving forward/backward, turning left/right
         self.movestates=Enum("Movement",["stop","forward","backward","left","right"])
         self.movestate=self.movestates.stop
+
+        # to track which step of turning around we are in.
+        self.turnstate=0
 
     def linmoveto(self, x, y, theta):
         '''
@@ -50,6 +53,15 @@ class Movement():
 
         self.target=[x, y, theta]
         self.algostate=self.algostates.linear
+
+    def turnaround(self):
+        '''
+        do a 360 degree rotation.
+        '''
+        # set current angle as target to store it
+        self.target[2]=self.state[2]
+        self.algostate=self.algostates.turnaround
+        self.turnstate=0
 
     def update(self, poseEstimate):
         '''
@@ -65,6 +77,8 @@ class Movement():
     def algoupdate(self):
         if self.algostate==self.algostates.linear:
             self.linmoveupdate()
+        elif self.algostate==self.algostates.turnaround:
+            self.turnaroundupdate()
         else:
             # stop
             self.movestate=self.movestates.stop
@@ -113,12 +127,38 @@ class Movement():
                 # if not, orient robot
                 self.rotateto(targetang)
 
+    def turnaroundupdate(self):
+        '''
+        turn around update.
+        does 3x120 deg rotations.
+        '''
+
+        if self.turnstate==0:
+            self.rotateto((self.target[2] + 2/3*np.pi) % 2*np.pi)
+            # if done
+            if self.movestate==self.movestates.stop:
+                self.turnstate+=1
+                print(f"1 done, next target {(self.target[2] + 4/3*np.pi) % 2*np.pi}")
+        elif self.turnstate==1:
+            self.rotateto((self.target[2] + 4/3*np.pi) % 2*np.pi)
+            # if done
+            if self.movestate==self.movestates.stop:
+                self.turnstate+=1
+                print(f"2 done, next target {self.target[2] % 2*np.pi}")
+        elif self.turnstate==2:
+            self.rotateto(self.target[2] % 2*np.pi)
+            # if done
+            if self.movestate==self.movestates.stop:
+                self.algostate=self.algostates.stop
+                self.turnstate=0
+                
     def rotateto(self, theta):
         '''
         rotate to given angle.
 
         theta: desired angle in radians.
         '''
+        # TODO terminates early, check.
         current=self.state[2]
         delta=(theta-current)
         #print(f"ROTATING// CURRENT: {current} TARGET: {theta}")

@@ -18,7 +18,6 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/robots/adept/pioneer3/protos/Pioneer3dx.proto"
 
 WorldInfo {
-  basicTimeStep 64
 }
 Viewpoint {
   orientation -0.45610100957999694 0.1813926408435697 0.8712454182995187 2.474497930613285
