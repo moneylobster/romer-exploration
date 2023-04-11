@@ -82,11 +82,24 @@ def posest(img):
             # rotate x and y by theta for some reason?????
             position_est = np.array([[res[0][0][0]*costheta[0]-res[0][1][0]*sintheta[0], res[0][0][0]*sintheta[0]+res[0][1][0]*costheta[0], np.arctan2(sintheta[0], costheta[0])]])
         else:
+            # find the first corner of the first tag
+            x1,y1 = corners[0][0][0]
+            # find the second corner of the first tag
+            x2,y2 = corners[0][0][1]
+            # find the angle between the two corners
+            theta = np.arctan2(y2-y1,x2-x1)
+            # find the center of the first tag
+            x,y = np.mean(corners[0][0], axis=0)
+            # find the position of the robot in the camera frame
+            u,v  = tag_coords[ids[0],0][0], tag_coords[ids[0],1][0]
+            # find the position of the robot in the world frame
+            x_est = -(u-matrix_coefficient[0,2])*2.95+matrix_coefficient[0,0]*(x*cos(theta)+y*sin(theta))
+            y_est = -(v-matrix_coefficient[1,2])*2.95+matrix_coefficient[1,1]*(-x*sin(theta)+y*cos(theta))
+            position_est = np.array([[x_est,y_est,theta]])                
+            # TODO implement this one
+                
             # TODO improve this one, currently it misses angle estimate.
             # either get it from rvec or get it from corners urself.
-            for i,id in enumerate(ids):
-                rvec, tvec, markerPoints = cv2.aruco.estimatePoseSingleMarkers(corners[i], tag_size*0.01, matrix_coefficient, distortion_coefficient)
-                tvec[0][0][1] = -tvec[0][0][1]
-                position_est = tag_coords[id] + tvec[0][0][1::-1]
+            
                 
     return position_est[0]
