@@ -3,12 +3,16 @@ import networkx as nx
 import numpy as np
 from skimage import morphology, measure
 import cv2
-import matplotlib.pyplot as plt
 from scipy.spatial.distance import cdist
 import sknw
 import pickle
 
 def medial_axis(img):
+    '''
+    Form the medial axis image from an image.
+    
+    img: image to process.
+    '''
     # invert the image to treat the free space as foreground
     img = img.astype(bool)
     # compute the medial axis
@@ -20,90 +24,13 @@ def medial_axis(img):
     # return the medial axis image
     return med_axis
 
-def find_medial_axis_vertices(med_axis):
-    # find the contours of the medial axis image
-    contours = measure.find_contours(med_axis, 0.5)
-    # find the center of each contour
-    centers = [np.mean(contour, axis=0).astype(int) for contour in contours]
-    vertices = centers
-    # merge vertices that are close to each other
-    dist_matrix = cdist(vertices, vertices)
-    for i, v1 in enumerate(vertices):
-        for j, v2 in enumerate(vertices[i+1:], start=i+1):
-            if dist_matrix[i, j] < 3:
-                vertices[i] = v1
-                vertices[j] = v1
+
+def create_medial_axis(img):
+    '''
+    Create a medial axis graph from an image.
     
-    return vertices, contours
-
-def cast_rays(img, pixel_coords):    
-    # Initialize results list
-    results = []    
-    # Iterate over pixel coordinates
-    for coord in pixel_coords:
-        pre_results = []
-        # Iterate over angles
-        for angle in range(0,360,2):
-            # Iterate over distances
-            for dist in range(0,100):
-                # Calculate x and y coordinates
-                x = int(coord[0] + np.cos(np.radians(angle))*dist)
-                y = int(coord[1] + np.sin(np.radians(angle))*dist)
-                # Check if x and y are within the image
-                if x < 0 or x > img.shape[0] - 1 or y < 0 or y > img.shape[1] - 1 or (x,y) in pre_results:
-                    break
-                # Check if pixel is occupied
-                if img[x,y] == 0:
-                    pre_results.append((x,y))
-                    break
-        results.append(pre_results)       
-    return results
-
-
-def is_unique_point(lst,vertex):    
-    res = []
-    res_point = []
-    points = set(sum(lst, []))
-    print(f"number of detected walls are {len(points)}")    
-    sorted_list = sorted(lst, key=lambda x: len(x),reverse=True)
-    sorted_index = sorted(range(len(lst)), key=lambda x: len(lst[x]),reverse=True)
-    for point in points:
-        print(point)
-        for i in range(len(sorted_list)):
-            if point in sorted_list[i]:
-                if point not in res_point:
-                    res.append(vertex[sorted_index[i]])
-                    for j in range(len(sorted_list[i])):
-                        if sorted_list[i][j] not in res_point:
-                            res_point.append(sorted_list[i][j])
-                break
-    print(f"number of detected walls are {len(res_point)}")
-    return res, points
-
-def skeleton_image_to_graph(skeIm, connectivity=2):
-    assert(len(skeIm.shape) == 2)
-    skeImPos = np.stack(np.where(skeIm))
-    skeImPosIm = np.zeros_like(skeIm, dtype=np.int)
-    skeImPosIm[skeImPos[0], skeImPos[1]] = np.arange(0, skeImPos.shape[1])
-    g = nx.Graph()
-    if connectivity == 1:
-        neigh = np.array([[0, 1], [0, -1], [1, 0], [-1, 0]])
-    elif connectivity == 2:
-        neigh = np.array([[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]])
-    else:
-        raise ValueError(f'unsupported connectivity {connectivity}')
-    for idx in range(skeImPos[0].shape[0]):
-        for neighIdx in range(neigh.shape[0]):
-            curNeighPos = skeImPos[:, idx] + neigh[neighIdx]
-            if np.any(curNeighPos<0) or np.any(curNeighPos>=skeIm.shape):
-                continue
-            if skeIm[curNeighPos[0], curNeighPos[1]] > 0:
-                g.add_edge(skeImPosIm[skeImPos[0, idx], skeImPos[1, idx]], skeImPosIm[curNeighPos[0], curNeighPos[1]], weight=np.linalg.norm(neigh[neighIdx]))
-    g.graph['physicalPos'] = skeImPos.T
-    return g
-
-def create_medial_axis(save=False):
-    img = cv2.imread("map_framed.png")
+    img: image to process.
+    '''
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img = img//240
 
@@ -120,24 +47,30 @@ def create_medial_axis(save=False):
     labelmapping={i:tuple(node["o"]) for i, node in graph.nodes(True)}
     nx.relabel_nodes(graph, labelmapping, copy=False)
 
-    if save:
-        # save the graph
-        with open("roadmap.pickle", "wb") as f:
-            pickle.dump(graph, f)
-
     return img, vertices, graph
 
 def count_neighbors(point, medial):
-        """Returns a list of valid neighbors for the given point on the grid map"""
-        x, y = point
-        neighbors = [(x+1, y), (x-1, y), (x, y+1), (x, y-1), (x+1, y+1), (x-1, y-1), (x+1, y-1), (x-1, y+1)]
-        valid_neighbors = []
-        for neighbor in neighbors:
-            if neighbor in medial:
-                valid_neighbors.append(neighbor)
-        return len(valid_neighbors)
+    '''
+    Returns a list of valid neighbors for the given point on the grid map
+    '''
+    x, y = point
+    neighbors = [(x+1, y), (x-1, y), (x, y+1), (x, y-1), (x+1, y+1), (x-1, y-1), (x+1, y-1), (x-1, y+1)]
+    valid_neighbors = []
+    for neighbor in neighbors:
+        if neighbor in medial:
+            valid_neighbors.append(neighbor)
+    return len(valid_neighbors)
 
 def find_waypoints(img, vertices):
+    '''
+    Find the waypoints to go to that provide good coverage of all the
+    walls in the map. Visiting all these waypoints should ideally mean the robot
+    has looked at every part of the map walls.
+    
+    img: Occupancy grid image
+    vertices: medial axis points, given as a list.
+    '''
+    
     intersection = []
     for point in vertices:
         num_neighbors = count_neighbors(point, vertices)
@@ -249,6 +182,9 @@ class NavChoice():
 def distance(p1,p2):
     '''
     L2 norm
+    
+    p1: 2D vector
+    p2: 2D vector
     '''
     return np.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
         
@@ -264,20 +200,18 @@ def getpathdict(tree, route):
         current=current.to[str(i)]
     return current
 
-
-def loadgraph():
-    # load the roadmap file
-    with open("roadmap.pickle", "rb") as f:
-        graph=pickle.load(f)
-    return graph
-
-def loadwaypoints():
-    # load the waypoints file
-    with open('foreground_centroids.txt', 'r') as f:
-        waypoints = [tuple(map(float, line.split())) for line in f]
-    return waypoints
-
-def pathfind(graph, waypoints):
+def pathfind(graph, waypoints, cull_percentage):
+    '''
+    Find a path through the graph that visits each waypoint, travelling the shortest distance.
+    
+    graph: networkx graph of roadmap.
+    waypoints: the waypoints to visit as a 2d list.
+    cull_percentage: which percentage of the worst plans so far to cull on each iteration.
+    
+    returns:
+        stats: a list in the format: [[waypoint visit order, total distance, True]]
+        path: a list of 2d coordinates to go to in order to enact the motion plan.
+    '''
     waypoints=[tuple(i) for i in waypoints]
     
     # add starting point into the waypoints as well as the last element
@@ -319,9 +253,9 @@ def pathfind(graph, waypoints):
             break
         # sort by distance
         pending.sort(key=lambda x: x[1])
-        # cull the last 10% of the list (they probably aren't the right choice anyway)
+        # cull the last cull_percentage% of the list (they probably aren't the right choice anyway)
         # this parameter can be increased to get better results. 100 (cull 1%) finds a shorter path, but takes a few seconds to find it.
-        todel=len(pending)//10
+        todel=len(pending)//(100//cull_percentage)
         if todel:
             del pending[-todel:]
             #print(f"deleted {todel} elements")
@@ -330,8 +264,23 @@ def pathfind(graph, waypoints):
 
     return completed, getpathdict(navtree, completed[0][0]).path
 
-def pathplan():
-    img, vertices, graph = create_medial_axis()
+def pathplan(imgpath="map_framed.png", cull_percentage=10):
+    '''
+    Create a path plan from the occupancy grid.
+    
+    imgpath: path to occupancy grid map of current world.
+    cull_percentage: which percentage of the worst plans so far to cull on each iteration.
+    
+    returns:
+        stats: a list in the format: [[waypoint visit order, total distance, True]]
+        path: a list of 2d coordinates to go to in order to enact the motion plan.
+    '''
+    # load occupancy grid map
+    img = cv2.imread(imgpath)
+    # create medial axis graph
+    img, vertices, graph = create_medial_axis(img)
+    # find the waypoints to go to
     waypoints=find_waypoints(img, vertices)
-    stats, path=pathfind(graph, waypoints)
+    # find how best to go to the waypoints
+    stats, path=pathfind(graph, waypoints, cull_percentage)
     return stats, path
