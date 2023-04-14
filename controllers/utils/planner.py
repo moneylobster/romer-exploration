@@ -212,10 +212,11 @@ def getpathdict(tree, route):
         current=current.to[str(i)]
     return current
 
-def pathfind(graph, waypoints, cull_percentage):
+def pathfind(startingpoint, graph, waypoints, cull_percentage):
     '''
     Find a path through the graph that visits each waypoint, travelling the shortest distance.
-    
+
+    startingpoint: robot starting location as a 2 element tuple.
     graph: networkx graph of roadmap.
     waypoints: the waypoints to visit as a 2d list.
     cull_percentage: which percentage of the worst plans so far to cull on each iteration.
@@ -227,7 +228,6 @@ def pathfind(graph, waypoints, cull_percentage):
     waypoints=[tuple(i) for i in waypoints]
     
     # add starting point into the waypoints as well as the last element
-    startingpoint=(0,0)
     waypoints.append(startingpoint)
 
     # we need to connect all waypoints to the graph nodes they are closest to.
@@ -276,10 +276,11 @@ def pathfind(graph, waypoints, cull_percentage):
 
     return completed, getpathdict(navtree, completed[0][0]).path
 
-def pathplan(imgpath="../utils/map_framed.png", cull_percentage=10):
+def pathplan(startingpoint=(0,0), imgpath="../utils/map_framed.png", cull_percentage=10):
     '''
     Create a path plan from the occupancy grid.
-    
+
+    startingpoint: robot starting location as a 2 element tuple.
     imgpath: path to occupancy grid map of current world.
     cull_percentage: which percentage of the worst plans so far to cull on each iteration.
     
@@ -294,5 +295,5 @@ def pathplan(imgpath="../utils/map_framed.png", cull_percentage=10):
     # find the waypoints to go to
     waypoints=find_waypoints(img, vertices)
     # find how best to go to the waypoints
-    stats, path=pathfind(graph, waypoints, cull_percentage)
+    stats, path=pathfind(startingpoint, graph, waypoints, cull_percentage)
     return stats, path

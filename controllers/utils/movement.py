@@ -17,16 +17,20 @@ class Movement():
         self.rm.setPosition(float('inf'))
 
         # default motor velocity
-        self.VEL=5
-
+        self.VEL=8
+        # multiplier to slow robot down as it gets closer to target
+        self.veldamper=1.0
         # desired position accuracy
         self.EPSILON=0.1
         # desired angle accuracy
         self.ANGEPSILON=0.1
+
+        self.VELCUTOFF=10
+        self.ANGCUTOFF=20
         
         self.state=[]
         self.target=[0,0,0]
-
+        
         # high level state - what is our goal right now?
         # stop: stopping
         # linear: moving to target in a straight line
@@ -87,27 +91,31 @@ class Movement():
         '''
         update motor signals according to movestate
         '''
+        vel=self.veldamper*self.VEL
         if self.movestate==self.movestates.forward:
-            self.lm.setVelocity(self.VEL)
-            self.rm.setVelocity(self.VEL)
+            self.lm.setVelocity(vel)
+            self.rm.setVelocity(vel)
         elif self.movestate==self.movestates.backward:
-            self.lm.setVelocity(-self.VEL)
-            self.rm.setVelocity(-self.VEL)
+            self.lm.setVelocity(-vel)
+            self.rm.setVelocity(-vel)
         elif self.movestate==self.movestates.left:
-            self.lm.setVelocity(-self.VEL/4)
-            self.rm.setVelocity(self.VEL/4)
+            self.lm.setVelocity(-vel)
+            self.rm.setVelocity(vel)
         elif self.movestate==self.movestates.right:
-            self.lm.setVelocity(self.VEL/4)
-            self.rm.setVelocity(-self.VEL/4)
+            self.lm.setVelocity(vel)
+            self.rm.setVelocity(-vel)
         else:
             # stop
             self.lm.setVelocity(0)
             self.rm.setVelocity(0)
+            self.veldamper=1.0
 
     def linmoveupdate(self):
         '''
         linear motion toward goal update
         '''
+
+        poserror=np.linalg.norm(self.state[:2]-self.target[:2])
         
         if all(abs(self.state[:2]-self.target[:2])<self.EPSILON):
             # if x, y does match (on target), orient robot toward goal orientation, if there is one.
@@ -123,6 +131,8 @@ class Movement():
             if abs(self.state[2]-targetang)<self.ANGEPSILON:
                 # if on target angle, go forward
                 self.movestate=self.movestates.forward
+                # apply damper
+                self.veldamper=max(min(abs(poserror)/(self.VELCUTOFF*self.EPSILON), 1), 0.2)
             else:
                 # if not, orient robot
                 self.rotateto(targetang)
@@ -162,6 +172,8 @@ class Movement():
         if abs(delta) % (2*np.pi)<self.ANGEPSILON:
             self.movestate=self.movestates.stop
         else:
+            # apply damper
+            self.veldamper=max(min(abs(delta)/(self.ANGCUTOFF*self.ANGEPSILON), 1), 0.2)
             # shortest rotation direction
             # source https://math.stackexchange.com/questions/110080/shortest-way-to-achieve-target-angle
             if np.sign((delta+3*np.pi)%(2*np.pi)-np.pi)+1:

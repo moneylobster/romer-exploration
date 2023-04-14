@@ -31,11 +31,11 @@ move = Movement(lm, rm)
 #         [0,0,1],
 #         [1,1,0]]
 #points=[[0,0]]
-stats, path=pathplan()
-points=path
+
+
 i=0
 
-move.linmoveto(*points[0])
+#move.linmoveto(*points[0])
 
 # Main loop:
 # - perform simulation steps until Webots is stopping the controller
@@ -46,6 +46,10 @@ while robot.step(timestep) != -1:
     img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGB)
 
     state = posest(img, TAG_METHOD) 
+
+    if i==0:
+        stats, path=pathplan(tuple(state[:2]))
+        points=path
     
     move.update(state)
     
