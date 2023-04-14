@@ -170,7 +170,7 @@ class NavChoice():
             
             wpchoice=NavChoice(waypoint,
                                [i for i in self.tovisit if i != waypoint],
-                               self.path+path,
+                               self.path+path+["waypoint"],
                                self.dist+dist,
                                self.choices+[waypoint])
             
