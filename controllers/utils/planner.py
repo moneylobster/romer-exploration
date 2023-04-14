@@ -4,8 +4,19 @@ import numpy as np
 from skimage import morphology, measure
 import cv2
 from scipy.spatial.distance import cdist
-import sknw
+from . import sknw
+#import sknw
 import pickle
+
+def to_world(coords):
+    '''
+    convert image coordinates to world coordinates.
+
+    coords: 2D vector to convert to.
+
+    returns a 2D vector in world coordinates.
+    '''
+    return (-16.21+0.05*coords[0], -3.6375+0.05*coords[1])
 
 def medial_axis(img):
     '''
@@ -44,7 +55,7 @@ def create_medial_axis(img):
     # construct a networkx graph out of the skeletonized image
     graph=sknw.build_sknw(med_axis)
     # convert the node names into the node coordinates.
-    labelmapping={i:tuple(node["o"]) for i, node in graph.nodes(True)}
+    labelmapping={i:to_world(tuple(node["o"])) for i, node in graph.nodes(True)}
     nx.relabel_nodes(graph, labelmapping, copy=False)
 
     return img, vertices, graph
@@ -103,6 +114,7 @@ def find_waypoints(img, vertices):
     num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(dilated_img, connectivity=8)
 
     centroids = centroids[1:]
+    centroids = [to_world(i) for i in centroids]
     # Return the list of foreground centroids pixel coordinates
     return centroids
 
@@ -264,7 +276,7 @@ def pathfind(graph, waypoints, cull_percentage):
 
     return completed, getpathdict(navtree, completed[0][0]).path
 
-def pathplan(imgpath="map_framed.png", cull_percentage=10):
+def pathplan(imgpath="../utils/map_framed.png", cull_percentage=10):
     '''
     Create a path plan from the occupancy grid.
     

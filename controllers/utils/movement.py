@@ -17,7 +17,7 @@ class Movement():
         self.rm.setPosition(float('inf'))
 
         # default motor velocity
-        self.VEL=2
+        self.VEL=5
 
         # desired position accuracy
         self.EPSILON=0.1
@@ -42,13 +42,13 @@ class Movement():
         # to track which step of turning around we are in.
         self.turnstate=0
 
-    def linmoveto(self, x, y, theta):
+    def linmoveto(self, x, y, theta=None):
         '''
         move in a straight line toward a given x, y, theta state.
         
         x: robot x coordinate in meters
         y: robot y coordinate in meters
-        theta: robot angle in radians.
+        theta: robot angle in radians. If None, final pose does not matter.
         '''
 
         self.target=[x, y, theta]
@@ -94,11 +94,11 @@ class Movement():
             self.lm.setVelocity(-self.VEL)
             self.rm.setVelocity(-self.VEL)
         elif self.movestate==self.movestates.left:
-            self.lm.setVelocity(-self.VEL)
-            self.rm.setVelocity(self.VEL)
+            self.lm.setVelocity(-self.VEL/4)
+            self.rm.setVelocity(self.VEL/4)
         elif self.movestate==self.movestates.right:
-            self.lm.setVelocity(self.VEL)
-            self.rm.setVelocity(-self.VEL)
+            self.lm.setVelocity(self.VEL/4)
+            self.rm.setVelocity(-self.VEL/4)
         else:
             # stop
             self.lm.setVelocity(0)
@@ -110,8 +110,8 @@ class Movement():
         '''
         
         if all(abs(self.state[:2]-self.target[:2])<self.EPSILON):
-            # if x, y does match (on target), orient robot toward goal orientation.
-            if abs(self.state[2]-self.target[2])<self.ANGEPSILON:
+            # if x, y does match (on target), orient robot toward goal orientation, if there is one.
+            if self.target[2]==None or abs(self.state[2]-self.target[2])<self.ANGEPSILON:
                 self.movestate=self.movestates.stop
                 self.algostate=self.algostates.stop
             else:

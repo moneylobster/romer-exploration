@@ -8,6 +8,7 @@ import sys
 sys.path.append("..")
 from utils.movement import Movement
 from utils.posest import posest
+from utils.planner import pathplan
 
 TAG_METHOD = 'least_square'
 
@@ -29,7 +30,9 @@ move = Movement(lm, rm)
 # points=[[2,1,-1],
 #         [0,0,1],
 #         [1,1,0]]
-points=[[0,0,1]]
+#points=[[0,0]]
+stats, path=pathplan()
+points=path
 i=0
 
 move.linmoveto(*points[0])
@@ -46,17 +49,18 @@ while robot.step(timestep) != -1:
     
     move.update(state)
     
-    print(f"Pose estimate: {state}, State: {move.algostate} {move.movestate}")
+    print(f"Pose estimate: {np.array2string(state, precision=5, floatmode='fixed', suppress_small=True)}, \tTarget: {move.target}, \tState: {move.algostate} {move.movestate}")
     
     if move.algostate==move.algostates.stop:
         print(i)
         i+=1
         if i==len(points):
-            move.turnaround()
-        elif i==len(points)+1:
             break
         else:
-            move.linmoveto(*points[i])
+            if points[i]=="waypoint":
+                move.turnaround()
+            else:
+                move.linmoveto(*points[i])
         
     
     
