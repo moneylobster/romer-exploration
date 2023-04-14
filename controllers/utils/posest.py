@@ -7,6 +7,45 @@ import cv2
 import yaml
 import ast
 
+def least_square(corners, ids, tag_coords, camera_inv):
+    b = np.array([[0]])
+    A = np.zeros((1,4))
+    for i in range(len(corners)):
+        xm = tag_coords[ids[i],0][0]
+        ym = tag_coords[ids[i],1][0]
+        A = np.append(A,np.array([[-1,0,xm,ym],[0,1,-ym,xm]]),axis=0)
+        # tried using inverse of transform, didn't work.
+        #A = np.append(A,np.array([[-1,0,xm,ym],[0,-1,ym,-xm]]),axis=0)
+        x,y = np.mean(corners[i][0], axis=0)
+        v = np.matmul(camera_inv,np.array([[y],[x],[1]]))
+        b = np.append(b,v[:2,:],axis=0)
+    b = b[1:,:]
+    A = A[1:,:]
+    # x y cos(theta) sin(theta)
+    res = np.linalg.lstsq(A,3.045*b,rcond=None)
+    # normalize sin(theta) and cos(theta) to unit magnitude to fix any inconsistencies between the two variables.
+    costheta=np.sign(res[0][2])*np.sqrt(res[0][2][0]**2/(res[0][2][0]**2+res[0][3][0]**2))
+    sintheta=np.sign(res[0][3])*np.sqrt(res[0][3][0]**2/(res[0][2][0]**2+res[0][3][0]**2))
+    # rotate x and y by theta for some reason?????
+    position_est = np.array([[res[0][0][0]*costheta[0]-res[0][1][0]*sintheta[0], res[0][0][0]*sintheta[0]+res[0][1][0]*costheta[0], np.arctan2(sintheta[0], costheta[0])]])
+    return position_est
+def single_tag(corners, ids, tag_coords, matrix_coefficient):    
+    # find the first corner of the first tag
+    x1,y1 = corners[0][0][0]
+    # find the second corner of the first tag
+    x2,y2 = corners[0][0][1]
+    # find the angle between the two corners
+    theta = np.arctan2(y2-y1,x2-x1)
+    # find the center of the first tag
+    x,y = np.mean(corners[0][0], axis=0)
+    # find the position of the robot in the camera frame
+    u,v  = tag_coords[ids[0],0][0], tag_coords[ids[0],1][0]
+    # find the position of the robot in the world frame
+    x_est = -(u-matrix_coefficient[0,2])*2.95+matrix_coefficient[0,0]*(x*np.cos(theta)+y*np.sin(theta))
+    y_est = -(v-matrix_coefficient[1,2])*2.95+matrix_coefficient[1,1]*(-x*np.sin(theta)+y*np.cos(theta))
+    position_est = np.array([[x_est,y_est,theta]])
+    return position_est
+
 # Load ceiling params
 with open('../../misc/tagsettings.txt', 'r') as f:
     tag_set = f.read()
@@ -29,6 +68,7 @@ tag_coords = [i.replace("]","") for i in tag_coords]
 tag_coords = np.array(tag_coords, dtype=np.float32)
 tag_coords = np.reshape(tag_coords, (-1,2))
 
+
 # Define arucomarker dict
 ARUCO_DICT = {
 	"DICT_4X4_50": cv2.aruco.DICT_4X4_50,
@@ -50,7 +90,8 @@ ARUCO_DICT = {
 	"DICT_ARUCO_ORIGINAL": cv2.aruco.DICT_ARUCO_ORIGINAL}
 arucoDict = cv2.aruco.Dictionary_get(ARUCO_DICT[tag_dict])
 
-def posest(img):
+def posest(img, method='least_square'):
+
     '''
     estimate robot pose based on image.
 
@@ -60,46 +101,18 @@ def posest(img):
     arucoParams = cv2.aruco.DetectorParameters_create()
     (corners, ids, rejected) = cv2.aruco.detectMarkers(img, arucoDict, parameters=arucoParams)
     if np.all(ids is not None):
-        if len(ids) > 2:
-            b = np.array([[0]])
-            A = np.zeros((1,4))
-            for i in range(len(corners)):
-                xm = tag_coords[ids[i],0][0]
-                ym = tag_coords[ids[i],1][0]
-                A = np.append(A,np.array([[-1,0,xm,ym],[0,1,-ym,xm]]),axis=0)
-                # tried using inverse of transform, didn't work.
-                #A = np.append(A,np.array([[-1,0,xm,ym],[0,-1,ym,-xm]]),axis=0)
-                x,y = np.mean(corners[i][0], axis=0)
-                v = np.matmul(camera_inv,np.array([[y],[x],[1]]))
-                b = np.append(b,v[:2,:],axis=0)
-            b = b[1:,:]
-            A = A[1:,:]
-            # x y cos(theta) sin(theta)
-            res = np.linalg.lstsq(A,3.045*b,rcond=None)
-            # normalize sin(theta) and cos(theta) to unit magnitude to fix any inconsistencies between the two variables.
-            costheta=np.sign(res[0][2])*np.sqrt(res[0][2][0]**2/(res[0][2][0]**2+res[0][3][0]**2))
-            sintheta=np.sign(res[0][3])*np.sqrt(res[0][3][0]**2/(res[0][2][0]**2+res[0][3][0]**2))
-            # rotate x and y by theta for some reason?????
-            position_est = np.array([[res[0][0][0]*costheta[0]-res[0][1][0]*sintheta[0], res[0][0][0]*sintheta[0]+res[0][1][0]*costheta[0], np.arctan2(sintheta[0], costheta[0])]])
-        else:
-            # find the first corner of the first tag
-            x1,y1 = corners[0][0][0]
-            # find the second corner of the first tag
-            x2,y2 = corners[0][0][1]
-            # find the angle between the two corners
-            theta = np.arctan2(y2-y1,x2-x1)
-            # find the center of the first tag
-            x,y = np.mean(corners[0][0], axis=0)
-            # find the position of the robot in the camera frame
-            u,v  = tag_coords[ids[0],0][0], tag_coords[ids[0],1][0]
-            # find the position of the robot in the world frame
-            x_est = -(u-matrix_coefficient[0,2])*2.95+matrix_coefficient[0,0]*(x*cos(theta)+y*sin(theta))
-            y_est = -(v-matrix_coefficient[1,2])*2.95+matrix_coefficient[1,1]*(-x*sin(theta)+y*cos(theta))
-            position_est = np.array([[x_est,y_est,theta]])                
-            # TODO implement this one
-                
-            # TODO improve this one, currently it misses angle estimate.
-            # either get it from rvec or get it from corners urself.
+        if method == 'least_square':
+            if len(ids) > 2:
+                position_est = least_square(corners, ids, tag_coords, camera_inv)            
+            else:                
+                position_est = single_tag(corners, ids, tag_coords, matrix_coefficient)
+        elif method == 'single_tag':
+            position_est = single_tag(corners, ids, tag_coords, matrix_coefficient)
+        
+        elif method == 'apart_tag':
+            pass
+            # position_est = apart_tag(corners, ids, tag_coords, matrix_coefficient)
+        
             
                 
     return position_est[0]

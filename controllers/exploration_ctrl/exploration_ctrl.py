@@ -9,6 +9,8 @@ sys.path.append("..")
 from utils.movement import Movement
 from utils.posest import posest
 
+TAG_METHOD = 'least_square'
+
 # create the Robot instance.
 robot = Robot()
 
@@ -40,7 +42,7 @@ while robot.step(timestep) != -1:
     img = np.frombuffer(img, np.uint8).reshape(camera.height, camera.width, 4)
     img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGB)
 
-    state = posest(img)
+    state = posest(img, TAG_METHOD) 
     move.update(state)
 
     print(f"Pose estimate: {state}, State: {move.algostate} {move.movestate}")
