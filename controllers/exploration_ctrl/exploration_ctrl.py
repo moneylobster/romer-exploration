@@ -43,20 +43,21 @@ while robot.step(timestep) != -1:
     img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGB)
 
     state = posest(img, TAG_METHOD) 
+    
     move.update(state)
-
+    
     print(f"Pose estimate: {state}, State: {move.algostate} {move.movestate}")
     
-    # TODO skips over two steps when movestate is stop, fix.
     if move.algostate==move.algostates.stop:
-        move.linmoveto(*points[i])
-        i+=1
         print(i)
+        i+=1
         if i==len(points):
             move.turnaround()
         elif i==len(points)+1:
             break
-    
+        else:
+            move.linmoveto(*points[i])
+        
     
     
     

@@ -134,23 +134,22 @@ class Movement():
         '''
 
         if self.turnstate==0:
-            self.rotateto((self.target[2] + 2/3*np.pi) % 2*np.pi)
+            self.rotateto((self.target[2] + 2/3*np.pi) % (2*np.pi))
             # if done
             if self.movestate==self.movestates.stop:
                 self.turnstate+=1
-                print(f"1 done, next target {(self.target[2] + 4/3*np.pi) % 2*np.pi}")
         elif self.turnstate==1:
-            self.rotateto((self.target[2] + 4/3*np.pi) % 2*np.pi)
+            self.rotateto((self.target[2] + 4/3*np.pi) % (2*np.pi))
             # if done
             if self.movestate==self.movestates.stop:
                 self.turnstate+=1
-                print(f"2 done, next target {self.target[2] % 2*np.pi}")
         elif self.turnstate==2:
-            self.rotateto(self.target[2] % 2*np.pi)
+            self.rotateto(self.target[2] % (2*np.pi))
             # if done
             if self.movestate==self.movestates.stop:
                 self.algostate=self.algostates.stop
                 self.turnstate=0
+       
                 
     def rotateto(self, theta):
         '''
@@ -158,15 +157,14 @@ class Movement():
 
         theta: desired angle in radians.
         '''
-        # TODO terminates early, check.
         current=self.state[2]
         delta=(theta-current)
-        #print(f"ROTATING// CURRENT: {current} TARGET: {theta}")
-        if abs(delta) % 2*np.pi<self.ANGEPSILON:
+        if abs(delta) % (2*np.pi)<self.ANGEPSILON:
             self.movestate=self.movestates.stop
         else:
-            # weird calculation to determine whether left or right is shorter
-            if (1-(2*(abs(delta)//np.pi)))*np.sign(delta)+1:
+            # shortest rotation direction
+            # source https://math.stackexchange.com/questions/110080/shortest-way-to-achieve-target-angle
+            if np.sign((delta+3*np.pi)%(2*np.pi)-np.pi)+1:
                 self.movestate=self.movestates.left
             else:
                 self.movestate=self.movestates.right
