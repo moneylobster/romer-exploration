@@ -35,15 +35,16 @@ def single_tag(corners, ids, tag_coords, matrix_coefficient):
     # find the second corner of the first tag
     x2,y2 = corners[0][0][1]
     # find the angle between the two corners
-    theta = np.arctan2(y2-y1,x2-x1)
+    theta = np.arctan2(y1-y2,x2-x1)
     # find the center of the first tag
-    x,y = np.mean(corners[0][0], axis=0)
+    u,v = np.mean(corners[0][0], axis=0)
     # find the position of the robot in the camera frame
-    u,v  = tag_coords[ids[0],0][0], tag_coords[ids[0],1][0]
+    x,y  = tag_coords[ids[0],0][0], tag_coords[ids[0],1][0]
     # find the position of the robot in the world frame
-    x_est = -(u-matrix_coefficient[0,2])*2.95+matrix_coefficient[0,0]*(x*np.cos(theta)+y*np.sin(theta))
-    y_est = -(v-matrix_coefficient[1,2])*2.95+matrix_coefficient[1,1]*(-x*np.sin(theta)+y*np.cos(theta))
-    position_est = np.array([[x_est,y_est,theta]])
+    x_est = -(v-matrix_coefficient[0,2])*3.045/matrix_coefficient[0,0]+(x*np.cos(theta)+y*np.sin(theta))
+    y_est = (u-matrix_coefficient[1,2])*3.045/matrix_coefficient[1,1]+(-x*np.sin(theta)+y*np.cos(theta))
+    position_est = np.array([[x_est*np.cos(theta)-y_est*np.sin(theta), x_est*np.sin(theta)+y_est*np.cos(theta), theta]])
+    position_error = np.linalg.norm(robot_node.getField('translation').getSFVec3f()[:2]-position_est[:,:2])
     return position_est
 
 # Load ceiling params
