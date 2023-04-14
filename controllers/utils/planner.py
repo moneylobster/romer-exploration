@@ -62,7 +62,6 @@ def cast_rays(img, pixel_coords):
 
 def is_unique_point(lst,vertex):    
     res = []
-    new_lst = []
     res_point = []
     points = set(sum(lst, []))
     print(f"number of detected walls are {len(points)}")    
@@ -107,8 +106,6 @@ def create_medial_axis(save=False):
     img = cv2.imread("map_framed.png")
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img = img//240
-    img_copy = img.copy()
-    # make grayscale image binary
 
     # compute the medial axis of the free space
     med_axis = medial_axis(img.transpose())
@@ -128,7 +125,53 @@ def create_medial_axis(save=False):
         with open("roadmap.pickle", "wb") as f:
             pickle.dump(graph, f)
 
-    return graph
+    return img, vertices, graph
+
+def count_neighbors(point, medial):
+        """Returns a list of valid neighbors for the given point on the grid map"""
+        x, y = point
+        neighbors = [(x+1, y), (x-1, y), (x, y+1), (x, y-1), (x+1, y+1), (x-1, y-1), (x+1, y-1), (x-1, y+1)]
+        valid_neighbors = []
+        for neighbor in neighbors:
+            if neighbor in medial:
+                valid_neighbors.append(neighbor)
+        return len(valid_neighbors)
+
+def find_waypoints(img, vertices):
+    intersection = []
+    for point in vertices:
+        num_neighbors = count_neighbors(point, vertices)
+        if num_neighbors >= 3:
+            intersection.append(point)
+
+    # create a black image
+    img2 = np.zeros((img.shape[0], img.shape[1], 3), np.uint8)
+
+    # make intersections white
+    for point in intersection:
+        img2[int(point[1]), int(point[0])] = (255, 255, 255)
+
+    gray = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+
+
+    # Define the kernel size for erosion and dilation
+    kernel_size = (23, 23)
+
+    # Create the erosion kernel
+    erosion_kernel = np.ones(kernel_size, np.uint8)
+
+    # Erode the image
+    dilated_img = cv2.dilate(gray, erosion_kernel, iterations=1)
+
+    # erode the image
+    #eroded_img = cv2.erode(dilated_img, erosion_kernel, iterations=1)
+
+    # Perform connected component analysis
+    num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(dilated_img, connectivity=8)
+
+    centroids = centroids[1:]
+    # Return the list of foreground centroids pixel coordinates
+    return centroids
 
 class NavChoice():
     
@@ -147,12 +190,12 @@ class NavChoice():
         self.choices=choices
         self.to={}
     
-    def exploreopts(self, graph, cached):
+    def exploreopts(self, graph, cache):
         '''
         find the path to each waypoint and calculate the cost for each option
         
         graph: the roadmap.
-        cached: list of cached astar calcs.
+        cache: list of cached astar calcs.
         
         returns a list of the options and their costs, and whether all waypoints have been visited.
         format is [waypoint, cost, done?]
@@ -235,6 +278,8 @@ def loadwaypoints():
     return waypoints
 
 def pathfind(graph, waypoints):
+    waypoints=[tuple(i) for i in waypoints]
+    
     # add starting point into the waypoints as well as the last element
     startingpoint=(0,0)
     waypoints.append(startingpoint)
@@ -283,4 +328,10 @@ def pathfind(graph, waypoints):
         # get the object for the lowest cost option
         toexplore=getpathdict(navtree, pending.pop(0)[0])
 
-    return completed
+    return completed, getpathdict(navtree, completed[0][0]).path
+
+def pathplan():
+    img, vertices, graph = create_medial_axis()
+    waypoints=find_waypoints(img, vertices)
+    stats, path=pathfind(graph, waypoints)
+    return stats, path
