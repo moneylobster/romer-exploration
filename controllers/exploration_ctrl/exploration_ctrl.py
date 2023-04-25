@@ -77,8 +77,7 @@ while robot.step(timestep) != -1:
 
     state = posest(img, TAG_METHOD) 
 
-    # if this is the first timestep of the sim, see where we are and
-    # plan out a path.
+    # check whether we see any hidden markers.
     flag, id = check_aruco(front_img,state)
     if flag:
         if id not in seen_markers:
@@ -86,6 +85,8 @@ while robot.step(timestep) != -1:
         if len(seen_markers) == MARKER_NUM:
             print("All markers seen")
 
+    # if this is the first timestep of the sim, see where we are and
+    # plan out a path.
     if i==0:
         stats, path=pathplan(tuple(state[:2]))
         points=path
