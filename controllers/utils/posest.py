@@ -108,11 +108,14 @@ def posest(img, method='least_square'):
                 position_est = single_tag(corners, ids, tag_coords, matrix_coefficient)
         elif method == 'single_tag':
             position_est = single_tag(corners, ids, tag_coords, matrix_coefficient)
-        
+
         elif method == 'apart_tag':
             pass
-            # position_est = apart_tag(corners, ids, tag_coords, matrix_coefficient)
-        
+        # position_est = apart_tag(corners, ids, tag_coords, matrix_coefficient)
             
-                
-    return position_est[0]
+    try:       
+        return position_est[0]
+    except:
+        # if there is a pose estimation error
+        # (likely due to not detecting any markers)
+        return None

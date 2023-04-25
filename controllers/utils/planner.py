@@ -4,9 +4,9 @@ import numpy as np
 from skimage import morphology, measure
 import cv2
 from scipy.spatial.distance import cdist
-# from . import sknw
-import sknw
-import pickle
+from . import sknw
+# import sknw
+# import pickle
 
 def to_world(coords):
     '''

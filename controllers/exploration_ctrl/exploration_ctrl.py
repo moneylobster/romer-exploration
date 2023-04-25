@@ -1,6 +1,5 @@
 """exploration_ctrl controller."""
-# TODO: add pose filtering, maybe include control signals?
-# TODO: posest: gracefully handle not getting any position estimates. Maybe return a None that gets interpreted by the pose filter as void?
+# TODO: include control signals in pose filtering
 # TODO: fix collisions somehow:
 #           - add potential field-like obtacle avoidance
 #           - use the original medial axis paths instead somehow??
@@ -16,9 +15,12 @@ import sys
 sys.path.append("..")
 from utils.movement import Movement
 from utils.posest import posest
+from utils.posefilter import PoseFilter
 from utils.planner import pathplan
 
 TAG_METHOD = 'single_tag'
+CAMPOSAVG = 2
+MARKER_NUM = 4
 
 # create the Robot instance.
 robot = Robot()
@@ -37,6 +39,7 @@ front_cam = robot.getDevice("front camera")
 front_cam.enable(timestep)
 
 move = Movement(lm, rm)
+posefilter=PoseFilter(CAMPOSAVG)
 
 # points=[[2,1,-1],
 #         [0,0,1],
@@ -60,7 +63,6 @@ def check_aruco(img,pose,aruco_dict=cv2.aruco.DICT_5X5_100):
         return False, None, None
 
 i=0
-MARKER_NUM = 4
 seen_markers = []
 #move.linmoveto(*points[0])
 
@@ -76,8 +78,10 @@ while robot.step(timestep) != -1:
     front_img = np.frombuffer(front_img, np.uint8).reshape(front_cam.height, front_cam.width, 4)
     front_img = cv2.cvtColor(front_img, cv2.COLOR_BGRA2RGB) 
 
-    state = posest(img, TAG_METHOD) 
-
+    camest = posest(img, TAG_METHOD)
+    posefilter.addcamestimate(camest)
+    state = posefilter.camaverage()
+    
     # check whether we see any hidden markers.
     flag, id, marker_location = check_aruco(front_img,state)
     if flag:
