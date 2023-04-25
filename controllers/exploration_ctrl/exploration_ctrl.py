@@ -21,6 +21,7 @@ from utils.planner import pathplan
 TAG_METHOD = 'single_tag'
 CAMPOSAVG = 2
 MARKER_NUM = 4
+DEBUG=True
 
 # create the Robot instance.
 robot = Robot()
@@ -94,7 +95,7 @@ while robot.step(timestep) != -1:
     # if this is the first timestep of the sim, see where we are and
     # plan out a path.
     if i==0:
-        stats, path=pathplan(tuple(state[:2]))
+        stats, path=pathplan(tuple(state[:2]), debug=DEBUG)
         points=path
 
     # call movement routines.

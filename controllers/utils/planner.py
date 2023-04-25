@@ -57,8 +57,8 @@ def create_medial_axis(img):
     # convert the node names into the node coordinates.
     labelmapping={i:to_world(tuple(node["o"])) for i, node in graph.nodes(True)}
     nx.relabel_nodes(graph, labelmapping, copy=False)
-
-    return img, vertices, graph
+    
+    return img, vertices, graph, med_axis
 
 def count_neighbors(point, medial):
     '''
@@ -276,7 +276,7 @@ def pathfind(startingpoint, graph, waypoints, cull_percentage):
 
     return completed, getpathdict(navtree, completed[0][0]).path
 
-def pathplan(startingpoint=(0,0), imgpath="../utils/map_framed.png", cull_percentage=10):
+def pathplan(startingpoint=(0,0), imgpath="../utils/map_framed.png", cull_percentage=10, debug=False):
     '''
     Create a path plan from the occupancy grid.
 
@@ -291,9 +291,13 @@ def pathplan(startingpoint=(0,0), imgpath="../utils/map_framed.png", cull_percen
     # load occupancy grid map
     img = cv2.imread(imgpath)
     # create medial axis graph
-    img, vertices, graph = create_medial_axis(img)
+    img, vertices, graph, med_axis = create_medial_axis(img)
     # find the waypoints to go to
     waypoints=find_waypoints(img, vertices)
     # find how best to go to the waypoints
     stats, path=pathfind(startingpoint, graph, waypoints, cull_percentage)
+
+    if debug:
+        cv2.imwrite("medialaxis.png", med_axis)
+        
     return stats, path
