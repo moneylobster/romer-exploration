@@ -42,23 +42,22 @@ move = Movement(lm, rm)
 #         [0,0,1],
 #         [1,1,0]]
 #points=[[0,0]]
-def check_aruco(img,pose,aruco_dict=cv2.aruco.DICT_4X4_100):
+def check_aruco(img,pose,aruco_dict=cv2.aruco.DICT_5X5_100):
     cameraMatrix = np.array([[528, 0, 360],[0, 528, 360],[0, 0, 1]])
     distCoeffs = np.array([0, 0, 0, 0, 0])
     aruco_dict = cv2.aruco.Dictionary_get(aruco_dict)
     parameters =  cv2.aruco.DetectorParameters_create()
     corners, ids, rejectedImgPoints = cv2.aruco.detectMarkers(img, aruco_dict, parameters=parameters)
     if ids is not None:
-        '''
-        rvec, tvec ,_ = cv2.aruco.estimatePoseSingleMarkers(corners, 0.05, cameraMatrix, distCoeffs)
+    
+        rvec, tvec ,_ = cv2.aruco.estimatePoseSingleMarkers(corners, 0.18, cameraMatrix, distCoeffs)
         robotx,roboty,robottheta=pose
-        marker_x = robot_x + tvec[0][0][0]*np.cos(robottheta) - tvec[0][0][2]*np.sin(robottheta)
-        marker_y = robot_y + tvec[0][0][0]*np.sin(robottheta) + tvec[0][0][2]*np.cos(robottheta)
-        m
-        '''
-        return True, ids[0][0]
+        marker_x = robotx + tvec[0][0][2]*np.cos(robottheta) + tvec[0][0][0]*np.sin(robottheta)
+        marker_y = roboty + tvec[0][0][2]*np.sin(robottheta) - tvec[0][0][0]*np.cos(robottheta)
+        marker_loc = np.array([marker_x,marker_y])
+        return True, ids[0][0], marker_loc
     else:
-        return False, None
+        return False, None, None
 
 i=0
 MARKER_NUM = 4
@@ -80,12 +79,13 @@ while robot.step(timestep) != -1:
     state = posest(img, TAG_METHOD) 
 
     # check whether we see any hidden markers.
-    flag, id = check_aruco(front_img,state)
+    flag, id, marker_location = check_aruco(front_img,state)
     if flag:
         if id not in seen_markers:
-            seen_markers.append(id)
+            seen_markers.append([id, marker_location])
         if len(seen_markers) == MARKER_NUM:
             print("All markers seen")
+            break
 
     # if this is the first timestep of the sim, see where we are and
     # plan out a path.

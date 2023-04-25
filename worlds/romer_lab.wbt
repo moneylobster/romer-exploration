@@ -14,14 +14,14 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/appearances/protos/GlossyPaint.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/cabinet/protos/Cabinet.proto"
 EXTERNPROTO "../protos/OfficeTable.proto"
-EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/apartment_structure/protos/Ceiling.proto"
+EXTERNPROTO "../protos/Ceiling.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/robots/adept/pioneer3/protos/Pioneer3dx.proto"
 
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.45610100957999694 0.1813926408435697 0.8712454182995187 2.474497930613285
-  position 6.014589744216018 -4.699624393078425 10.955513025893033
+  orientation 0.10279299482922566 0.2130076792080391 -0.971628184447345 0.9219330302946086
+  position -1.7067018270672585 -0.09367481751003764 1.5758447000500724
 }
 TexturedBackground {
 }
@@ -489,6 +489,14 @@ Pioneer3dx {
   translation -0.46 0 0.0975
   controller "exploration_ctrl"
   extensionSlot [
+    Camera {
+      translation 0 0 0.2
+      rotation 0 1 0 0
+      name "front camera"
+      fieldOfView 1.2
+      width 720
+      height 720
+    }
     Camera {
       translation 0 0 0.1525
       rotation 0 -1 0 1.5707996938995747
@@ -1282,6 +1290,24 @@ DEF CEILING_TAGS Group {
           filtering 0
         }
         name "tag48_texture"
+      }
+    }
+  ]
+}
+Solid {
+  translation -0.25 -3.54 0.539996
+  rotation 0.5773509358560258 0.577349935856137 0.577349935856137 -2.094395307179586
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "../misc/tags/5x5-hidden.png"
+          ]
+        }
+      }
+      geometry Plane {
+        size 0.18 0.18
       }
     }
   ]

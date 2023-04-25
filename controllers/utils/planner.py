@@ -1,11 +1,11 @@
-import pickle
+# import picklesknw
 import networkx as nx
 import numpy as np
 from skimage import morphology, measure
 import cv2
 from scipy.spatial.distance import cdist
-from . import sknw
-#import sknw
+# from . import sknw
+import sknw
 import pickle
 
 def to_world(coords):
